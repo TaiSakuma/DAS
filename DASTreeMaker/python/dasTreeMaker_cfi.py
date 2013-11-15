@@ -1,22 +1,41 @@
-# $Id: dasTreeMaker_cfi.py,v 1.2 2013/01/10 17:18:13 mschrode Exp $
-
 import FWCore.ParameterSet.Config as cms
 
 dasTreeMaker = cms.EDAnalyzer(
     'DASTreeMaker',
-    MCdata        = cms.bool(False),
-    sampleID      = cms.int32(0),
-    isSUSY        = cms.bool(False),
-    evtWgtTag     = cms.InputTag("weight"), # If non-empty, use this weight variable in the event
-    evtWgt        = cms.double(1.),         # If evtWgtTag is empty and evtWgt > 0 use evtWgt
-    genjets       = cms.InputTag("ak5GenJets"),  
-    genmet        = cms.InputTag("genMetCalo"),
-    vertex        = cms.InputTag("offlinePrimaryVertices"),  
-    jets          = cms.InputTag("allLayer1JetsIC5"),
-    PATmet        = cms.InputTag("allLayer1METsIC5"),
-    muons         = cms.InputTag("allLayer1Muons"),
-    electrons     = cms.InputTag("allLayer1Electrons"),
-    PATphotons    = cms.InputTag("allLayer1Photons"),
-    PFRhoTag      = cms.InputTag("kt6PFJetsForGammaIso","rho"),       
-    OutFile       = cms.string('ra2DAStree.root')
-    )
+
+    # Name of the output tree
+    TreeName          = cms.string('DASRA2Tree'),
+
+    # Dataset id
+    SampleId          = cms.int32(0),
+
+    # collection from which the tree variable "NumVtx" is determined
+    VertexCollection  = cms.InputTag('goodVertices'),
+
+    # jet collection from which "HT" and "NJets" are computed
+    HTJets            = cms.InputTag('patJetsAK5PFPt50Eta25'),
+
+    # jet collection from which "MHT" and the "DeltaPhi" are computed
+    MHTJets           = cms.InputTag('patJetsAK5PFPt30'),
+
+    # all jets
+    Jets              = cms.InputTag('patJetsPF'),
+
+    # leptons
+    Electrons         = cms.InputTag('patElectronsID'),
+    Muons             = cms.InputTag('patMuonsID'),
+
+    # ra2 leptons, i.e. isolated
+    IsoElectrons         = cms.InputTag('patElectronsIDIso'),
+    IsoMuons             = cms.InputTag('patMuonsIDIso'),
+
+    # double-precision event weights
+    WeightTag         = cms.InputTag(''),
+    PrescaleTag       = cms.InputTag(''),
+
+    # MET for MT computation
+    MET               = cms.InputTag(''),
+
+    # Generator particles
+    GenParticles      = cms.InputTag('genParticles'),
+)

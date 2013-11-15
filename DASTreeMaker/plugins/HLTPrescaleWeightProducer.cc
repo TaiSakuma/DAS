@@ -3,8 +3,6 @@
 #include <memory>
 #include <string>
 #include <iostream>
-#include <vector>
-#include <map>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"

@@ -1,97 +1,122 @@
-#ifndef DASTreeMaker_h
-#define DASTreeMaker_h
+//
+// Original Author:  Matthias Schroeder,32 3-B20,+41227677557,
+//         Created:  Sat Oct  5 17:17:51 CEST 2013
+// $Id$
+//
+//
+
+
+// system include files
+#include <memory>
+#include <string>
+#include <vector>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-#include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/PluginManager/interface/ModuleDef.h"
-#include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/Framework/interface/ESHandle.h"
+
+#include "FWCore/Utilities/interface/InputTag.h"
+
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/Provenance/interface/EventID.h"
-#include "FWCore/Utilities/interface/InputTag.h"
-#include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/Common/interface/View.h"
+#include "DataFormats/METReco/interface/MET.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
-#include "DataFormats/METReco/interface/GenMETCollection.h"
-#include "DataFormats/METReco/interface/GenMET.h"
-#include "DataFormats/JetReco/interface/GenJet.h"
-#include "DataFormats/JetReco/interface/GenJetCollection.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
-//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/PatCandidates/interface/MET.h"
-#include "DataFormats/PatCandidates/interface/Muon.h"
-#include "DataFormats/PatCandidates/interface/Electron.h"
-#include "DataFormats/PatCandidates/interface/Photon.h"
-#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
-#include "CommonTools/Utils/interface/StringObjectFunction.h"
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+#include "TTree.h"
 
-#include <TROOT.h>
-#include <TTree.h>
-#include <TFile.h>
-#include <TMath.h>
-#include <TString.h>
-
+//
+// class declaration
+//
 
 class DASTreeMaker : public edm::EDAnalyzer {
- public:
+public:
   explicit DASTreeMaker(const edm::ParameterSet&);
   ~DASTreeMaker();
-
-
- private:
-  virtual void beginJob() ;
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
   
-  void GetMCObjects(const reco::GenJetCollection& GenJets, const reco::GenMETCollection& GenMet, const reco::GenParticleCollection& Gen);
-  void GetWdecay(const reco::GenParticleCollection& Gen);
-  void GetZdecay(const reco::GenParticleCollection& Gen);
-  void GetTTdecay(const reco::GenParticleCollection& Gen);
-  void GetGenPhoton(const reco::GenParticleCollection& Gen);
-  void GetRecoObjects(const edm::View<reco::Candidate>& jets, const pat::METCollection& patMet, const edm::View<reco::Candidate>& muons, const edm::View<reco::Candidate>& eles, const pat::PhotonCollection& patPhotons, const reco::VertexCollection& Vtx);
-  void GetSUSYs(const LHEEventProduct& lhep, const GenEventInfoProduct& genProd);
-  int GetProcID(int procID);
-  int hadronicTauFlag(const reco::Candidate &cand) const;
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  
+  
+private:
+  virtual void beginJob();
+  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void endJob();
+  
+  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
+  virtual void endRun(edm::Run const&, edm::EventSetup const&);
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
-  const int maxColSize_;  // Maximum number of elements of a collection stored in the ntuple
+  bool isHTJet(const reco::Candidate &jet) const { 
+    return jet.pt() > 50. && std::abs(jet.eta()) < 2.5;
+  }
+  bool isMHTJet(const reco::Candidate &jet) const { 
+    return jet.pt() > 30. && std::abs(jet.eta()) < 5.;
+  }
+  double mt(double pt, double phi, double met, double metPhi) const;
+  void analyzeJets(const edm::View<reco::Candidate> &jets);
+  unsigned int analyzeWDecay(const edm::View<reco::GenParticle> &genPs);
+  int flagTauDecay(const reco::Candidate &cand, const reco::Candidate* &lepton) const;
+  void setBranchVariablesToDefault();
+  
+  // ----------member data ---------------------------
 
-  double pfEventRho_;
-  float evtWgt_;
-  int sampleID_;
-  bool isMCdata_, isSUSY_;
 
-  edm::InputTag genJetsTag_, genMetsTag_, vertexTag_, jetsTag_, patMetsTag_, muonsTag_, elesTag_, patPhotonsTag_, pfRhoTag_, evtWgtTag_;
+  std::string treeName_;
+  TTree* tree_;
 
-  std::string outFileName_;
+  // External information
+  const int sampleId_;
 
-  TFile* outFile_;
-  TTree* dasTree_;
-      
-  int nvtx_, njet_, nmu_, nele_, nphot_, ngjet_, runnr_, evtnr_, lumib_, flgW_, flgZ_, flgTT_, flgSUSY_, flgTauHad_;
-  float M0, M12, A0, tanB, sgnMu;
-  float bosM, bosID, bosPx, bosPy, bosPz, bosE, bosQ;
-  float *lepM, *lepID, *lepPx, *lepPy, *lepPz, *lepE, *lepQ;
-  float gphoM,gphoID,gphoPx,gphoPy,gphoPz,gphoE;
-  float genmet, genmetphi, recomet, recometphi;
-      
-  float *vtxz;
-  float *jpx, *jpy, *jpz, *jen, *jpt, *jphi, *jeta;
-  float *phpx, *phpy, *phpz, *phen, *phpt, *phphi, *pheta;
-  float *muq, *mupx, *mupy, *mupz, *muen, *mupt, *muphi, *mueta;
-  float *eleq, *elepx, *elepy, *elepz, *eleen, *elept, *elephi, *eleeta;
+  // Event-provenance information 
+  UInt_t runNum_;      
+  UInt_t lumiBlockNum_;
+  UInt_t evtNum_;
 
-  float *gjpx, *gjpy, *gjpz, *gjen, *gjpt, *gjphi, *gjeta;
+  // Global event information 
+  std::vector<edm::InputTag> weightTags_;
+  std::vector<std::string> weightNamesInTree_;
+  std::vector<Float_t> weights_;
+
+  edm::InputTag vertexCollectionTag_;
+  UShort_t nVtx_;
+
+  std::vector<edm::InputTag> metTags_;
+  std::vector<std::string> metNamesInTree_;
+  std::vector<Float_t> metMags_;
+  std::vector<Float_t> metPhis_;
+  Float_t mt_;
+
+  Float_t ht_;
+  Float_t mhtMag_;
+  Float_t mhtPhi_;
+  UShort_t nJets_;
+  Float_t deltaPhi1_, deltaPhi2_, deltaPhi3_;
+
+
+  // Jet and lepton collections
+  const unsigned int maxCandColSize_;  // Maximum number of elements of a collection stored in the ntuple
+  unsigned int isoMuCandColIdx_;
+  std::vector<edm::InputTag> candColInputTags_;
+  std::vector<std::string>   candColNamesInTree_;
+  std::vector<UShort_t> candColN_;
+  std::vector<Float_t*> candColPt_;
+  std::vector<Float_t*> candColEta_;
+  std::vector<Float_t*> candColPhi_;
+  std::vector<Float_t*> candColE_;
+
+
+  // W-decay information
+  edm::InputTag genParticleColTag_;
+  std::vector<std::string> genPartNamesInTree_;
+  std::vector<Float_t> genPartPt_;
+  std::vector<Float_t> genPartEta_;
+  std::vector<Float_t> genPartPhi_;
+  std::vector<Float_t> genPartE_;
+  std::vector<Int_t> genPartPdgId_;
+  UShort_t flgW_;
+  UShort_t flgTau_;
 };
-
-#endif
-
