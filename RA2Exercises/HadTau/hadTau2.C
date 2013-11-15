@@ -167,19 +167,9 @@ void hadTau2(unsigned int id = 11,
       float simHt = selHt;
       float simMhtX = selMhtX;
       float simMhtY = selMhtY;
-      
-      // If simulted tau-jet meets same criteria as as HT jets,
-      // recompute NJets and HT
-      if( simTauJetPt > Selection::htJetPtMin() && std::abs(muEta) < Selection::htJetEtaMax() ) {
-	simNJet++;
-	simHt += simTauJetPt;
-      }
-      // If simulated tau-jet meets same criteria as MHT jets,
-      // recompute MHT
-      if( simTauJetPt > Selection::mhtJetPtMin() && std::abs(muEta) < Selection::mhtJetEtaMax() ) {
-	simMhtX -= simTauJetPt*cos(muPhi);
-	simMhtY -= simTauJetPt*sin(muPhi);
-      }
+     
+      // >>> PLACE HT, MHT, AND NJETS COMPUTATION HERE
+
 
       const float simMht = sqrt( simMhtX*simMhtX + simMhtY*simMhtY );
       const float simMhtPhi = std::atan2(simMhtY,simMhtX);
@@ -190,15 +180,8 @@ void hadTau2(unsigned int id = 11,
       if( !Selection::mht(simMht) ) continue;
       if( !deltaPhi(simMhtPhi,evt->jetsN(),evt->jetsPt(),evt->jetsEta(),evt->jetsPhi(),muJetIdx,simTauJetPt,simTauJetEta,simTauJetPhi) ) continue;
 
-      // Corrections to control sample
-      const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays
-      const double corrBRTauToMu = 1./1.15; // Correction for the fact that some muons could come from leptonic decays of taus from W decays
-      const double corrMuAcc = 1./muonAcc(evt->mht(),evt->nJets()); // Correction for muon acceptance
-      const double corrMuRecoEff = 1./muonRecoEff(evt->ht(),evt->mht(),evt->nJets()); // Correction for muon reconstruction efficiency
-      const double corrMuIsoEff = 1./muonIsoEff(evt->ht(),evt->mht(),evt->nJets()); // Correction for muon isolation efficiency
-      
       // The overall correction factor
-      const double corr = corrBRTauToMu * corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff;
+      const double corr = 1.;
 
       // Fill the prediction
       hPredHt->Fill(simHt,corr);

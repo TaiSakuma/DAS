@@ -151,24 +151,6 @@ void lostLepton1(unsigned int id = 11, int nEvts = -1) {
 	  // been reconstructed.
 	  hRecoPass.at(nJetIdx)->Fill(evt->ht(),evt->mht());
 
-	  // Isolation-efficiency determination 1: Counter for all events with a
-	  // reconstructed muon that has a generator-level muon match inside the
-	  // the acceptance, regardless of whether the reconstructed muon is also
-	  // isolated or not.
-	  hIsoAll.at(nJetIdx)->Fill(evt->ht(),evt->mht());
-	  
-	  // Check if the muon is also isolated: check if an isolated muon is present
-	  // in the event that matches the reconstructed muon in R
-	  int matchedIsoMuonIdx = -1;
-	  if( utils::findMatchedObject(matchedIsoMuonIdx,evt->muonsEta()[matchedMuonIdx],evt->muonsPhi()[matchedMuonIdx],evt->isoMuonsEta(),evt->isoMuonsPhi(),evt->isoMuonsN(),deltaRMax) ) {
-	    // Muon is isolated
-	    
-	    // Isolation-efficiency determination 2: Counter for those events where
-	    // the muon is also isolated.
-	    hIsoPass.at(nJetIdx)->Fill(evt->ht(),evt->mht());
-
-	  } // End of muon is isolated
-
 	} // End of pt matching
       }	// End of reconstructed muon
 
