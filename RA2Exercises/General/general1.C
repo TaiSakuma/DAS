@@ -1,63 +1,49 @@
+#include <cmath>
 #include <iostream>
 #include <vector>
 
-#include "TChain.h"
 #include "TH1.h"
-#include "TH1F.h"
-#include "TFile.h"
-#include "TMath.h"
+#include "TH1D.h"
 #include "TString.h"
+#include "TVector2.h"
+
+#include "../Utils/Event.h"
+#include "../Utils/Sample.h"
 
 
-
-// === Global Variables ================================================
-
-// Array dimensions in tree
-const int kRecoJetColSize = 15;
-
-// RA2 selection cuts
-const float kHtJetPtMin   = 50.;
-const float kHtJetEtaMax  = 2.5;
-const float kMhtJetPtMin  = 30.;
-const float kMhtJetEtaMax = 5.0;
-
-
-
-
-// === Declaration of Auxiliary Functions ==============================
-TString sampleLabel(int sampleId);
-TString fileName(int sampleId);
-
-
-
+// Investigation of SM background and signal event properties.
+// Learning how to access the data
+//
+//
+// Author: Matthias Schroeder
+//         matthias.schroeder@AT@desy.de
+//         November 2013
 
 // === Main Function ===================================================
-void general1(int sampleId) {
-  std::cout << "Analysing the " << sampleLabel(sampleId) << " sample" << std::endl;
+void general1(unsigned int id, int nEvts = -1) {
+  std::cout << "Analysing the '" << Sample::toTString(id) << "' sample" << std::endl;
 
 
   // --- Declare the Output Histograms ---------------------------------
-  TH1* hNJets = new TH1F("hNJets",";N(jets);N(events)",12,0,12);
+  TH1* hNJets = new TH1D("hNJets",";N(jets);N(events)",12,0,12);
   hNJets->Sumw2();
-  TH1* hHt = new TH1F("hHt",";H_{T} [GeV]",30,0,3000);
+  TH1* hHt = new TH1D("hHt",";H_{T} [GeV]",30,0,3000);
   hHt->Sumw2();
   hHt->GetXaxis()->SetNdivisions(505);
-  TH1* hMht = new TH1F("hMht",";#slash{H}_{T} [GeV]",30,0,1500);
+  TH1* hMht = new TH1D("hMht",";#slash{H}_{T} [GeV]",24,0,1200);
   hMht->Sumw2();
   hMht->GetXaxis()->SetNdivisions(505);
-  TH1* hMEff = new TH1F("hMEff",";M_{eff} [GeV]",50,0,5000);
-  hMEff->Sumw2();
-  hMEff->GetXaxis()->SetNdivisions(505);
-  std::vector<TH1*> hJetPt(6);
-  std::vector<TH1*> hJetPhi(6);
-  std::vector<TH1*> hJetEta(6);
-  for(unsigned int i = 0; i < hJetEta.size(); ++i) {
+  std::vector<TH1*> hJetPt(3,NULL);
+  std::vector<TH1*> hJetPhi(3,NULL);
+  std::vector<TH1*> hJetEta(3,NULL);
+  std::vector<TH1*> hDeltaPhi(3,NULL);
+  for(unsigned int i = 0; i < hJetPt.size(); ++i) {
     TString name = "hJetPt_";
     name += i;
     TString title = ";p_{T}(jet ";
     title += i+1;
     title += ") [GeV];N(events)";
-    hJetPt.at(i) = new TH1F(name,title,30,0,1500);
+    hJetPt.at(i) = new TH1D(name,title,30,0,1500);
     hJetPt.at(i)->Sumw2();
 
     name = "hJetPhi_";
@@ -65,7 +51,7 @@ void general1(int sampleId) {
     title = ";#phi(jet ";
     title += i+1;
     title += ");N(events)";
-    hJetPhi.at(i) = new TH1F(name,title,24,-4,4);
+    hJetPhi.at(i) = new TH1D(name,title,24,-4,4);
     hJetPhi.at(i)->Sumw2();
 
     name = "hJetEta_";
@@ -73,169 +59,112 @@ void general1(int sampleId) {
     title = ";#eta(jet ";
     title += i+1;
     title += ");N(events)";
-    hJetEta.at(i) = new TH1F(name,title,25,-5,5);
+    hJetEta.at(i) = new TH1D(name,title,25,-5,5);
     hJetEta.at(i)->Sumw2();
+
+    name = "hDeltaPhi_";
+    name += i;
+    title = ";#Delta#phi(#slash{#vec{H}}_{T},jet ";
+    title += i+1;
+    title += ");N(events)";
+    hDeltaPhi.at(i) = new TH1D(name,title,24,-4,4);
+    hDeltaPhi.at(i)->Sumw2();
   }
 
 
 
-  // --- Declare the Variables Read from the Tree ----------------------
-  // Reco-level jets
-  int nRecoJets = 0;
-  float recoJetPt[kRecoJetColSize];
-  float recoJetPhi[kRecoJetColSize];
-  float recoJetEta[kRecoJetColSize];
-
-  // Number of reco-level muons and electrons
-  int nRecoMus = 0;
-  int nRecoEle = 0;
-
-  // MC Event weight
-  float evtWgt = 1.;
-
-
-
-  // --- Set Up the Tree -----------------------------------------------
-
-  // Get the tree from file
-  TChain* tr = new TChain("AnaTree");
-  tr->Add("/nfs/dust/test/cmsdas/school61/susy/ntuple/2013-v1/"+fileName(sampleId)+"_0.root");
-
-  // Set the branches
-  tr->SetBranchAddress("NrecoJet",&nRecoJets);
-  tr->SetBranchAddress("recoJetPt",recoJetPt);
-  tr->SetBranchAddress("recoJetPhi",recoJetPhi);
-  tr->SetBranchAddress("recoJetEta",recoJetEta);
-  tr->SetBranchAddress("NrecoMu",&nRecoMus);
-  tr->SetBranchAddress("NrecoEle",&nRecoEle);
-  if( sampleId > 0 ) tr->SetBranchAddress("EvtWgt",&evtWgt);
-
-
-
-  // --- Process the Events in the Tree --------------------------------
-  int nEvtsToProcess = tr->GetEntries();
-  std::cout << "Processing " << nEvtsToProcess << " events" << std::endl;
-
-  // Loop over the tree entries
-  for(int evtIdx = 0; evtIdx < nEvtsToProcess; ++evtIdx) {
-    if( evtIdx%100000 == 0 ) std::cout<<"  Event: " << evtIdx << std::endl;
-
-    // Get the variables' values for this event
-    tr->GetEntry(evtIdx);
-    if( nRecoJets > kRecoJetColSize ) {
-      std::cerr << "ERROR: more than " << kRecoJetColSize << " reco jets in event " << evtIdx << std::endl;
-      exit(-1);
-    }
-
+  // --- Analyse the events --------------------------------------------
+  // The Event class is an interface to the TTree objects in the
+  // input ROOT files. 
+  // Here, we use the following event variables:
+  //  - isoElectronsN() : Number of well-reconstructed, isolated electrons
+  //  - isoMuonsN()     : Number of well-reconstructed, isolated muons
+  //  - jetsN()         : Number of well-reconstructed jets
+  //  - jetsPt()        : Array of size jetsN() lsstoring the jets pt; likewise for eta and phi
+  Event* evt = new Event(Sample::fileNameFullSample(id),nEvts);
+  
+  // Loop over the events
+  while( evt->loadNext() ) {
 
     // Apply the lepton veto
-    if( nRecoEle > 0 ) continue;
-    if( nRecoMus > 0 ) continue;
+    if( evt->isoElectronsN() != 0 ) continue;
+    if( evt->isoMuonsN() != 0 ) continue;
 
 
-    // Calculate RA2 selection-variables from jets
-    float selNJet = 0; // Number of jets with pt > 50 GeV and |eta| < 2.5 (HT jets)
-    float selHt   = 0.;
-    float selMhtX = 0.;
-    float selMhtY = 0.;
-    // Loop over reco jets: they are ordered in pt
-    for(int jetIdx = 0; jetIdx < nRecoJets; ++jetIdx) {
+    // Calculate the jet-based RA2 selection variables
+    float selNJet = 0;          // Number of jets with pt > 50 GeV and |eta| < 2.5 (`HT jets')
+    float selHt   = 0.;		// HT, computed from jets with pt > 50 GeV and |eta| < 2.5 (`HT jets')
+    float selMhtX = 0.;		// X-component of MHT,  computed from jets with pt > 30 GeV (`MHT jets')
+    float selMhtY = 0.;		// Y-component of MHT,  computed from jets with pt > 30 GeV (`MHT jets')
+    // Loop over reco jets in this event: they are ordered in pt
+    for(int jetIdx = 0; jetIdx < evt->jetsN(); ++jetIdx) {
       // Calculate NJet and HT
-      if( recoJetPt[jetIdx] > kHtJetPtMin && TMath::Abs(recoJetEta[jetIdx]) < kHtJetEtaMax ) {
+      if( evt->jetsPt()[jetIdx] > 50. && std::abs(evt->jetsEta()[jetIdx]) < 2.5 ) {
+	// This is an HT jet
 	selNJet++;
-	selHt += recoJetPt[jetIdx];
+	selHt += evt->jetsPt()[jetIdx];
       }
       // Calculate MHT components
-      if( recoJetPt[jetIdx] > kMhtJetPtMin && TMath::Abs(recoJetEta[jetIdx]) < kMhtJetEtaMax ) {
-	selMhtX -= recoJetPt[jetIdx]*TMath::Cos(recoJetPhi[jetIdx]);
-	selMhtY -= recoJetPt[jetIdx]*TMath::Sin(recoJetPhi[jetIdx]);
+      if( evt->jetsPt()[jetIdx] > 30 && std::abs(evt->jetsEta()[jetIdx]) < 5.0 ) {
+	// This is an MHT jet
+	selMhtX -= evt->jetsPt()[jetIdx]*std::cos(evt->jetsPhi()[jetIdx]);
+	selMhtY -= evt->jetsPt()[jetIdx]*std::sin(evt->jetsPhi()[jetIdx]);
       }
     } // End of loop over reco jets
-    float selMht = sqrt( selMhtX*selMhtX + selMhtY*selMhtY );
-    
+    // Compute MHT from components
+    const float selMht = sqrt( selMhtX*selMhtX + selMhtY*selMhtY );
 
-    // Select only events with at least 2 HT jets
-    if( selNJet < 3 ) continue;
+    // Delta phi between the MHT vector and the jet for the leading MHT jets
+    std::vector<double> deltaPhis(3,9999.);
+    const float phiMht = std::atan2(selMhtY,selMhtX);
+    // Loop over reco jets: remember, they are ordered in pt!
+    unsigned int nMhtJets = 0;
+    for(int jetIdx = 0; jetIdx < evt->jetsN(); ++jetIdx) {
+      
+      // Select MHT jets
+      if( evt->jetsPt()[jetIdx] > 30 && std::abs(evt->jetsEta()[jetIdx]) < 5.0 ) {
+	
+	// Compute delta phi (per convention in sector between -Pi and Pi)
+	// between this jet and the MHT vector
+	const float deltaPhi = TVector2::Phi_mpi_pi(evt->jetsPhi()[jetIdx]-phiMht); 
+	// Store deltaPhi
+	deltaPhis.at(nMhtJets) = deltaPhi;
+	
+	// Increase counter for MHT jets
+	++nMhtJets;
+	// DeltaPhi cut only for first three jets
+	// Leave jet loop if the first 3 MHT jets tested
+	if( nMhtJets == 3 ) break;
+	
+      }	// End of MHT-jet criterion
 
+    } // End of loop over reco jets
 
-
-    //>>> PLACE OTHER RA2 CUTS HERE
-
-
-
-
-    
-    // Event weight in plots
-    float weight = 1.;
-    if( sampleId == 1 ) weight = evtWgt; // In case of the flat QCD-MC, reweight to physical spectrum
-
-    
-    // Fill histogram
-    hNJets->Fill(selNJet,weight);
-    hHt->Fill(selHt,weight);
-    hMht->Fill(selMht,weight);
-    hMEff->Fill(selHt+selMht,weight);
-    for(int i = 0; i < static_cast<int>(hJetPt.size()); ++i) {
-      if( i == nRecoJets ) break;
-      hJetPt.at(i)->Fill(recoJetPt[i],weight);
-      hJetPhi.at(i)->Fill(recoJetPhi[i],weight);
-      hJetEta.at(i)->Fill(recoJetEta[i],weight);
+    // Fill histograms
+    hNJets->Fill(selNJet);
+    hHt->Fill(selHt);
+    hMht->Fill(selMht);
+    for(unsigned int i = 0; i < hJetPt.size(); ++i) {
+      if( i == evt->jetsN() ) break;
+      hJetPt.at(i)->Fill(evt->jetsPt()[i]);
+      hJetPhi.at(i)->Fill(evt->jetsPhi()[i]);
+      hJetEta.at(i)->Fill(evt->jetsEta()[i]);
+      hDeltaPhi.at(i)->Fill(deltaPhis.at(i));
     }
   } // End of loop over events
 
 
 
   // --- Save the Histograms to File -----------------------------------
-  TFile outFile("General_"+fileName(sampleId)+".root","RECREATE");
+  TFile outFile("General_"+Sample::toTString(id)+".root","RECREATE");
   hNJets->Write();
   hHt->Write();
   hMht->Write();
-  hMEff->Write();
   for(unsigned int i = 0; i < hJetPt.size(); ++i) {
-    hJetPt[i]->Write();
-    hJetEta[i]->Write();
-    hJetPhi[i]->Write();
+    hJetPt.at(i)->Write();
+    hJetEta.at(i)->Write();
+    hJetPhi.at(i)->Write();
+    hDeltaPhi.at(i)->Write();
   }  
-}
-
-
-
-
-// === Implementation of Auxiliary Functions =====================
-
-// Return the label for a given sample
-TString sampleLabel(int sampleId) {
-  TString label = "";
-  if( sampleId == 0 )      label += "Data";
-  else if( sampleId == 1 ) label += "QCD";
-  else if( sampleId == 2 ) label += "t#bar{t}+Jets";
-  else if( sampleId == 3 ) label += "W(l#nu)+Jets";
-  else if( sampleId == 4 ) label += "Z(#nu#bar{#nu})+Jets";
-  else if( sampleId == 5 ) label += "LM6";
-  else if( sampleId == 6 ) label += "LM9";
-  else {
-    std::cerr << "ERROR: no sample with id " << sampleId << std::endl;
-    exit(-1);
-  }
-
-  return label;
-}
-
-
-// Return the file name for a given sample
-TString fileName(int sampleId) {
-  TString name = "";
-  if( sampleId == 0 )      name += "Data";
-  else if( sampleId == 1 ) name += "QCD";
-  else if( sampleId == 2 ) name += "TTJets";
-  else if( sampleId == 3 ) name += "WJets";
-  else if( sampleId == 4 ) name += "ZInv";
-  else if( sampleId == 5 ) name += "LM6";
-  else if( sampleId == 6 ) name += "LM9";
-  else {
-    std::cerr << "ERROR: no sample with id " << sampleId << std::endl;
-    exit(-1);
-  }
-
-  return name;
+  outFile.Close();
 }
