@@ -49,6 +49,13 @@ unsigned int Selection::searchBin(double ht, double mht, unsigned int nJets) {
       else if( mht > 450 && mht < 600 ) bin = 3;
       else if( mht > 600              ) bin = 4;
 
+    } else if( ht >  800 && ht < 1000 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 5;
+      else if( mht > 300 && mht < 450 ) bin = 6;
+      else if( mht > 450 && mht < 600 ) bin = 7;
+      else if( mht > 600              ) bin = 8;
+
     } else if( ht > 1000 && ht < 1250 ) {
 
       if(      mht > 200 && mht < 300 ) bin = 9;
@@ -56,8 +63,63 @@ unsigned int Selection::searchBin(double ht, double mht, unsigned int nJets) {
       else if( mht > 450 && mht < 600 ) bin = 11;
       else if( mht > 600              ) bin = 12;
 
+    } else if( ht > 1250 && ht < 1500 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 13;
+      else if( mht > 300 && mht < 450 ) bin = 14;
+      else if( mht > 450              ) bin = 15;
+
+    } else if( ht > 1500 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 16;
+      else if( mht > 300              ) bin = 17;
+
     }
 
+  } else if( nJets >= 6 && nJets <= 7 ) {
+    
+    if( ht > 500 && ht < 800 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 18;
+      else if( mht > 300 && mht < 450 ) bin = 19;
+      else if( mht > 450              ) bin = 20;
+
+    } else if( ht >  800 && ht < 1000 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 21;
+      else if( mht > 300 && mht < 450 ) bin = 22;
+      else if( mht > 450              ) bin = 23;
+
+    } else if( ht > 1000 && ht < 1250 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 24;
+      else if( mht > 300 && mht < 450 ) bin = 25;
+      else if( mht > 450              ) bin = 26;
+
+    } else if( ht > 1250 && ht < 1500 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 27;
+      else if( mht > 300 && mht < 450 ) bin = 28;
+      else if( mht > 450              ) bin = 29;
+
+    } else if( ht > 1500 ) {
+
+      if(      mht > 200 && mht < 300 ) bin = 30;
+      else if( mht > 300              ) bin = 31;
+
+    }
+
+  } else if( nJets >= 8 ) {
+    
+    if( mht > 200 ) {
+
+      if(      ht >  500 && ht <  800 ) bin = 32;
+      else if( ht >  800 && ht < 1000 ) bin = 33;
+      else if( ht > 1000 && ht < 1250 ) bin = 34;
+      else if( ht > 1250 && ht < 1500 ) bin = 35;
+      else if( ht > 1500              ) bin = 36;
+
+    }
 
   }
 
