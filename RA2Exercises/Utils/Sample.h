@@ -44,8 +44,8 @@ private:
 };
 
 
-TString Sample::path_ = "/home/matsch/DAS/ntuple/v4/";
-//TString Sample::path_ = "/data/user/schroeder/DAS/ntuple/v4/";
+// Path to ntuple directory. Adapt for your environment.
+TString Sample::path_ = "/data/user/schroeder/DAS/ntuple/v4/";
 
 TString Sample::fileNameFullSample(unsigned int id) {
   checkId(id);
