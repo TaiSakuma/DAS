@@ -45,7 +45,7 @@ private:
 
 
 // Path to ntuple directory. Adapt for your environment.
-TString Sample::path_ = "/data/user/schroeder/DAS/ntuple/v4/";
+TString Sample::path_ = "root://eoscms//eos/uscms/store/user/lhx/CMSDAS2014/";
 
 TString Sample::fileNameFullSample(unsigned int id) {
   checkId(id);
