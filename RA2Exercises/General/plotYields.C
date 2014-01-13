@@ -8,8 +8,8 @@
 
 // === Main Function ===================================================
 void plotYields() {
-  gROOT->ProcessLine(".L ../Utils/Sample.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
+  gROOT->ProcessLine(".L ../Utils/Sample.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
 
 
   const int kNSamples = 4;

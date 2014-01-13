@@ -5,8 +5,8 @@
 //         November 2013
 void plotClosureTest(const TString &fileName = "HadTau_WJetMC_Closure.root",
 		     const TString &graphicsFormat = "png") {
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
   StyleMatters::init();
   const int canSize = 500;
 

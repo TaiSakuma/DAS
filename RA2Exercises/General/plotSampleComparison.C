@@ -30,9 +30,9 @@ void setStyle(TH1* h, unsigned int id) {
 
 // === Main Function ===================================================
 void plotSampleComparison(const TString &graphicsFormat = "png") {
-  gROOT->ProcessLine(".L ../Utils/Sample.h+");
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
+  gROOT->ProcessLine(".L ../Utils/Sample.h++");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
   StyleMatters::init();
   const int canSize = 500;
 
@@ -46,7 +46,6 @@ void plotSampleComparison(const TString &graphicsFormat = "png") {
   TH1* hMht[kNSamples];
   const int kNJetHists = 3;
   TH1* hJetPt[kNJetHists][kNSamples];
-  TH1* hJetPhi[kNJetHists][kNSamples];
   TH1* hJetEta[kNJetHists][kNSamples];
   TH1* hDeltaPhi[kNJetHists][kNSamples];
 
@@ -72,9 +71,6 @@ void plotSampleComparison(const TString &graphicsFormat = "png") {
       hJetPt[i][s] = HistReader::get(fileName,name);
       name = "hJetPhi_";
       name += i;
-      hJetPhi[i][s] = HistReader::get(fileName,name);
-      name = "hJetEta_";
-      name += i;
       hJetEta[i][s] = HistReader::get(fileName,name);
       name = "hDeltaPhi_";
       name += i;
@@ -82,12 +78,10 @@ void plotSampleComparison(const TString &graphicsFormat = "png") {
       // Normalise histograms because we want to compare the shapes only
       normHist(hJetPt[i][s]);
       normHist(hJetEta[i][s]);
-      normHist(hJetPhi[i][s]);
       normHist(hDeltaPhi[i][s]);
       // Set style and color
       setStyle(hJetPt[i][s],ids[s]);
       setStyle(hJetEta[i][s],ids[s]);
-      setStyle(hJetPhi[i][s],ids[s]);
       setStyle(hDeltaPhi[i][s],ids[s]);
     }
   } // End of loop over samples
@@ -112,7 +106,7 @@ void plotSampleComparison(const TString &graphicsFormat = "png") {
 
   TCanvas* canNJets = new TCanvas("canNJets","NJets",canSize,canSize);
   canNJets->cd();
-  hNJets[0]->GetYaxis()->SetRangeUser(0.,0.9);
+  hNJets[0]->GetYaxis()->SetRangeUser(0.,0.7);
   hNJets[0]->Draw(drawOptions[0]);
   for(int s = 1; s < kNSamples; ++s) {
     hNJets[s]->Draw(drawOptions[s]+"same");
@@ -147,7 +141,7 @@ void plotSampleComparison(const TString &graphicsFormat = "png") {
     name += i+1;
     TCanvas* can = new TCanvas(name,name,canSize,canSize);
     can->cd();
-    hJetEta[i][0]->GetYaxis()->SetRangeUser(0,0.5);
+    hJetEta[i][0]->GetYaxis()->SetRangeUser(0,0.4);
     hJetEta[i][0]->Draw(drawOptions[0]);
     for(int s = 1; s < kNSamples; ++s) {
       hJetEta[i][s]->Draw(drawOptions[s]+"same");
@@ -161,7 +155,7 @@ void plotSampleComparison(const TString &graphicsFormat = "png") {
     name += i+1;
     TCanvas* can = new TCanvas(name,name,canSize,canSize);
     can->cd();
-    hDeltaPhi[i][0]->GetYaxis()->SetRangeUser(0,0.6);
+    hDeltaPhi[i][0]->GetYaxis()->SetRangeUser(0,0.7);
     hDeltaPhi[i][0]->Draw(drawOptions[0]);
     for(int s = 1; s < kNSamples; ++s) {
       hDeltaPhi[i][s]->Draw(drawOptions[s]+"same");

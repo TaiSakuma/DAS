@@ -5,8 +5,8 @@
 //         November 2013
 
 void plotClosureMuons(const TString &fileName = "LostLepton_ClosureMuonAcceptance.root") {
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
   StyleMatters::init();
 
   // The muon kinematics

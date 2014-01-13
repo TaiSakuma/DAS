@@ -5,10 +5,10 @@
 //         November 2013
 
 void plotMuonEfficiencies(const TString &fileName = "../data/LostLepton_MuonEfficienciesFromWJetMC.root") {
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
-  gROOT->ProcessLine(".L ../Utils/LeptonEfficiency.h+");
-  gROOT->ProcessLine(".L ../Utils/LeptonAcceptance.h+");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
+  gROOT->ProcessLine(".L ../Utils/LeptonEfficiency.h++");
+  gROOT->ProcessLine(".L ../Utils/LeptonAcceptance.h++");
   StyleMatters::init();
 
   TH2* hAcc = static_cast<TH2*>(HistReader::get(fileName,LeptonAcceptance::nameMuonAcc()));

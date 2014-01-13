@@ -4,8 +4,8 @@
 //         matthias.schroeder@AT@desy.de
 //         November 2013
 void plotPrediction(double scale = 1., const TString &fileName = "LostLepton_Data_Prediction.root") {
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
   StyleMatters::init();
 
 

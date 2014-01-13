@@ -25,9 +25,9 @@ void setStyle(TH1* h, unsigned int id) {
 void plotSample(unsigned int id,
 		bool afterSelection = false,
 		const TString &graphicsFormat = "png") {
-  gROOT->ProcessLine(".L ../Utils/Sample.h+");
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
+  gROOT->ProcessLine(".L ../Utils/Sample.h++");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
   StyleMatters::init();
   const int canSize = 500;
 
@@ -53,9 +53,6 @@ void plotSample(unsigned int id,
     TString name = "hJetPt_";
     name += i;
     hJetPt[i] = HistReader::get(fileName,name);
-    name = "hJetPhi_";
-    name += i;
-    hJetPhi[i] = HistReader::get(fileName,name);
     name = "hJetEta_";
     name += i;
     hJetEta[i] = HistReader::get(fileName,name);
@@ -65,7 +62,6 @@ void plotSample(unsigned int id,
     // Set style and color
     setStyle(hJetPt[i],id);
     setStyle(hJetEta[i],id);
-    setStyle(hJetPhi[i],id);
     setStyle(hDeltaPhi[i],id);
   }
 
@@ -113,15 +109,6 @@ void plotSample(unsigned int id,
     can->cd();
     hJetPt[i]->Draw(drawOption);
     can->SetLogy();
-    can->SaveAs(outName+name+"."+graphicsFormat);
-  }
-
-  for(unsigned int i = 0; i < kNJetHists; ++i) {
-    TString name = "JetPhi";
-    name += i+1;
-    TCanvas* can = new TCanvas(name,name,canSize,canSize);
-    can->cd();
-    hJetPhi[i]->Draw(drawOption);
     can->SaveAs(outName+name+"."+graphicsFormat);
   }
 

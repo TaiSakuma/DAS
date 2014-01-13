@@ -5,9 +5,9 @@
 //         November 2013
 void plotTauResponseTemplates(const TString &fileName = "../data/HadTau_TauResponseTemplates.root",
 			      const TString &graphicsFormat = "png") {
-  gROOT->ProcessLine(".L ../Utils/StyleMatters.h+");
-  gROOT->ProcessLine(".L ../Utils/HistReader.h+");
-  gROOT->ProcessLine(".L ../Utils/TauResponse.h+");
+  gROOT->ProcessLine(".L ../Utils/StyleMatters.h++");
+  gROOT->ProcessLine(".L ../Utils/HistReader.h++");
+  gROOT->ProcessLine(".L ../Utils/TauResponse.h++");
   StyleMatters::init();
   const int canSize = 500;
 
