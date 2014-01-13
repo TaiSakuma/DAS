@@ -117,7 +117,7 @@ void hadTau2(unsigned int id = 11,
       
       // Use only events where the muon is inside acceptance
       if( muPt < TauResponse::ptMin() ) continue;
-      if( muEta > TauResponse::etaMax() ) continue;
+      if( std::abs( muEta ) > TauResponse::etaMax() ) continue;
 
       // "Cross cleaning": find the jet that corresponds to
       // the muon. Associate the jet that is closest in
