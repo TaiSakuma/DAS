@@ -41,7 +41,7 @@ void plotTauResponseTemplates(const TString &fileName = "../data/HadTau_TauRespo
       entry += TauResponse::ptMax(i);
     } else {
       entry += "> ";
-      entry += TauResponse::ptMin(i-1);
+      entry += TauResponse::ptMin(i);
     }
     leg->AddEntry(hResp[i],entry,"L");
   }
