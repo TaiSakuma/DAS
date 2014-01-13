@@ -174,7 +174,7 @@ private:
 };
 
 
-Event::Event(const TString &fileName, int nEvtsToProcess)
+Event::Event(const TString &fileName, int numProcessed)
   : maxColSize_(50), currentEntry_(-1) {
 
   std::cout << "Setting up event variables ... " << std::flush;
@@ -206,7 +206,7 @@ Event::Event(const TString &fileName, int nEvtsToProcess)
   
   chain_ = new TChain("dasTree/DASRA2Tree");
   chain_->Add(fileName);
-  nTotEvts_ = ( nEvtsToProcess < 0 ) ? chain_->GetEntries() : std::min(nEvtsToProcess,static_cast<int>(chain_->GetEntries()));
+  nTotEvts_ = ( numProcessed < 0 ) ? chain_->GetEntries() : std::min(numProcessed,static_cast<int>(chain_->GetEntries()));
 
   // Set the branches
   chain_->SetBranchAddress("Weight",&weight_);
