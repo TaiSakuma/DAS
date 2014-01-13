@@ -1,6 +1,7 @@
 #ifndef LEPTON_EFFICIENCY_H
 #define LEPTON_EFFICIENCY_H
 
+#include <cmath>
 #include <iostream>
 #include <exception>
 #include <vector>
@@ -8,6 +9,8 @@
 #include "TFile.h"
 #include "TH2.h"
 #include "TString.h"
+
+#include "HistReader.h"
 
 
 // Access the lepton reconstruction or isolation efficiencies
@@ -19,16 +22,6 @@
 //         November 2013
 class LeptonEfficiency {
 public:
-  // N(jets) binnning for efficiency parametrisation
-  static unsigned int numNJetBins() { return 3; }
-  static TString nJetBinId(unsigned int bin);
-  static unsigned int nJetBin(int nJets);
-
-  // MHT bins for efficiency parametrisation
-  static std::vector<double> mhtBinEdges(unsigned int nJetBin);
-
-  // HT bins for efficiency parametrisation
-  static std::vector<double> htBinEdges(unsigned int nJetBin);
 
   // Labels for histogram names  
   static TString nameMuonRecoEff() { return "MuonRecoEff"; }
@@ -39,6 +32,8 @@ public:
   static TString nameElecRecoEff(unsigned int nJetBin) { return nameElecRecoEff()+nJetBinId(nJetBin); }
   static TString nameElecIsoEff() { return "ElecIsoEff"; }
   static TString nameElecIsoEff(unsigned int nJetBin) { return nameElecIsoEff()+nJetBinId(nJetBin); }
+  static TString nameEffNJetsBinning() { return "EffNJetsBinning"; }
+  static TString nJetBinId(unsigned int bin);
 
 
   // Constructor. 'histNameBase' is appended by the appropriate 
@@ -52,7 +47,8 @@ public:
 
 private:
   std::vector<TH2*> effs_;
-  double nJetsMin_;
+  TH1* hNJetsBinning_;
+  unsigned int nJetsMin_;
   double htMin_;
   double htMax_;
   double mhtMin_;
@@ -64,24 +60,19 @@ private:
 
 
 LeptonEfficiency::LeptonEfficiency(const TString &fileName, const TString &histNameBase) {
-  TFile file(fileName,"READ");
-  for(unsigned int i = 0; i < numNJetBins(); ++i) {
+  // Get the NJets binning
+  hNJetsBinning_ = HistReader::get(fileName,nameEffNJetsBinning());
+  nJetsMin_ = std::ceil(hNJetsBinning_->GetXaxis()->GetBinLowEdge(1));
+  
+  for(int i = 0; i < hNJetsBinning_->GetNbinsX(); ++i) {
     const TString histName(histNameBase+nJetBinId(i));
-    TH2* h = NULL;
-    file.GetObject(histName,h);
-    if( h == NULL ) {
-      std::cerr << "\n\nERROR reading efficiency map '" << histName << "' from file\n\n" << std::endl;
-      throw std::exception();
-    } else {
-      h->SetDirectory(0);
-      effs_.push_back(h);
-      if( i == 0 ) {
-	nJetsMin_ = 3;
-	htMin_ = h->GetXaxis()->GetBinLowEdge(1);
-	htMax_ = h->GetXaxis()->GetBinUpEdge(h->GetNbinsX());
-	mhtMin_ = h->GetYaxis()->GetBinLowEdge(1);
-	mhtMax_ = h->GetYaxis()->GetBinUpEdge(h->GetNbinsY());
-      }
+    TH2* h = static_cast<TH2*>(HistReader::get(fileName,histName));
+    effs_.push_back(h);
+    if( i == 0 ) {
+      htMin_ = h->GetXaxis()->GetBinLowEdge(1);
+      htMax_ = h->GetXaxis()->GetBinUpEdge(h->GetNbinsX());
+      mhtMin_ = h->GetYaxis()->GetBinLowEdge(1);
+      mhtMax_ = h->GetYaxis()->GetBinUpEdge(h->GetNbinsY());
     }
   }
 }
@@ -102,109 +93,33 @@ double LeptonEfficiency::operator()(double ht, double mht, unsigned int nJets) c
   double mhtTmp = mht;
   if( mhtTmp < mhtMin_ ) mhtTmp = mhtMin_ + 0.01;
   if( mhtTmp > mhtMax_ ) mhtTmp = mhtMax_ - 0.01;
-  double nJetsTmp = nJets;
-  if( nJetsTmp < nJetsMin_ ) nJetsTmp = nJetsMin_ + 0.01;
+  unsigned int nJetsTmp = nJets;
+  if( nJetsTmp < nJetsMin_ ) nJetsTmp = nJetsMin_;
 
-  TH2* h = effs_.at(getNJetIdx(nJetsTmp));
+  TH2* h = effs_.at( getNJetIdx(nJetsTmp) );
 
-  return h->GetBinContent(h->FindBin(htTmp,mhtTmp));
+  return h->GetBinContent( h->FindBin(htTmp,mhtTmp) );
 }
 
 
 TString LeptonEfficiency::nJetBinId(unsigned int bin) {
-  TString id("");
-  if(      bin == 0 ) id = "NJets3-5";
-  else if( bin == 1 ) id = "NJets6-7";
-  else if( bin == 2 ) id = "NJets8-Inf";
-  
+  TString id("NJetsBin");
+  id += bin;
+
   return id;
 }
 
 
-unsigned int LeptonEfficiency::nJetBin(int nJets) {
-  unsigned int bin = 2;
-  if( nJets >= 3 ) {
-    if(      nJets <= 5 ) bin = 0;
-    else if( nJets <= 7 ) bin = 1;
-  } else {
-    std::cerr << "ERROR jet multiplicity nJets = " << nJets << " out of lepton-efficiency binning" << std::endl;
-    throw std::exception();
-  }
-  
-  return bin;
-}
-
-
 unsigned int LeptonEfficiency::getNJetIdx(unsigned int nJets) const {
-  unsigned idx = 0;
-  if( nJets >= 3 && nJets <= 5 ) {
-    idx = 0;
-  } else if( nJets >=6 && nJets <=7 ) {
-    idx = 1;
-  } else if( nJets >= 8 ) {
-    idx = 2;
-  } else {
-    std::cerr << "\n\nERROR trying to obtain lepton efficiency for nJets < 3\n\n" << std::endl;
+  if( nJets < nJetsMin_ ) {
+    std::cerr << "\n\nERROR trying to obtain lepton efficiency for nJets < " << nJetsMin_ << "\n\n" << std::endl;
     throw std::exception();
   }
 
-  return idx;
-}
+  unsigned int bin = hNJetsBinning_->FindBin(nJets);
+  if( bin > static_cast<unsigned int>(hNJetsBinning_->GetNbinsX()) ) bin--;
 
-
-std::vector<double> LeptonEfficiency::htBinEdges(unsigned int nJetBin) {
-  std::vector<double> bins;
-  if( nJetBin == 0 ) {
-    // NJets 3 - 5
-    bins.push_back(500);
-    bins.push_back(800);
-    bins.push_back(1000);
-    bins.push_back(1250);
-    bins.push_back(2500);
-  } else if( nJetBin == 1 ) {
-    // NJets 6 - 7
-    bins.push_back(500);
-    bins.push_back(800);
-    bins.push_back(1000);
-    bins.push_back(1250);
-    bins.push_back(1500);
-    bins.push_back(2500);
-  } else if( nJetBin == 2 ) {
-    // NJets > 7
-    bins.push_back(500);
-    bins.push_back(800);
-    bins.push_back(1000);
-    bins.push_back(1250);
-    bins.push_back(1500);
-    bins.push_back(2500);
-  }
-
-  return bins;
-}
-
-
-std::vector<double> LeptonEfficiency::mhtBinEdges(unsigned int nJetBin) {
-  std::vector<double> bins;
-  if( nJetBin == 0 ) {
-    // NJets 3 - 5
-    bins.push_back(200);
-    bins.push_back(300);
-    bins.push_back(450);
-    bins.push_back(600);
-    bins.push_back(2500);
-  } else if( nJetBin ==  1 ) {
-    // NJets 6 - 7
-    bins.push_back(200);
-    bins.push_back(300);
-    bins.push_back(450);
-    bins.push_back(2500);
-  } else if( nJetBin == 2 ) {
-    // NJets > 7
-    bins.push_back(200);
-    bins.push_back(2500);
-  }
-
-  return bins;
+  return bin-1;			// histogram binning starts at 1!
 }
 
 #endif

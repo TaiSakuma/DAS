@@ -24,28 +24,6 @@ public:
   static double electronPtMin() { return 10.; }
   static double electronEtaMax() { return 5.0; }
 
-  // MHT bins for acceptance parametrisation
-  static std::vector<double> mhtBinEdges() {
-    std::vector<double> bins;
-    bins.push_back(200.);
-    bins.push_back(600.);
-    bins.push_back(1600.);
-
-    return bins;
-  }
-
-  // N(jets) bins for acceptance parametrisation
-  static std::vector<double> nJetsBinEdges() {
-    std::vector<double> bins;
-    bins.push_back(3);
-    bins.push_back(4);
-    bins.push_back(6);
-    bins.push_back(7);
-    bins.push_back(14);
-
-    return bins;
-  }
-
   // Labels for histogram names
   static TString nameMuonAcc() { return "MuonAcc"; }
   static TString nameElecAcc() { return "ElecAcc"; }

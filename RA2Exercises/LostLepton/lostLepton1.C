@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include <iostream>
 #include <vector>
 
@@ -44,6 +45,87 @@ const double deltaRMax = 0.1;
 const double deltaPtMax = 0.2;
 
 
+// === Helper Functions ================================================
+
+// MHT bins for acceptance parametrisation
+std::vector<double> accMHTBinEdges() {
+  std::vector<double> bins;
+  bins.push_back(200.);
+  bins.push_back(300.);
+  bins.push_back(400.);
+  bins.push_back(600.);
+  bins.push_back(1600.);
+  
+  return bins;
+}
+
+// N(jets) bins for acceptance parametrisation
+std::vector<double> accNJetsBinEdges() {
+  std::vector<double> bins;
+  bins.push_back(2.5);
+  bins.push_back(3.5);
+  bins.push_back(4.5);
+  bins.push_back(5.5);
+  bins.push_back(6.5);
+  bins.push_back(13.5);
+  
+  return bins;
+}
+
+  // HT bins for efficiency parametrisation
+std::vector<double> effHTBinEdges() {
+  std::vector<double> bins;
+  bins.push_back(500);
+  bins.push_back(600);
+  bins.push_back(800);
+  bins.push_back(1000);
+  bins.push_back(1250);
+  bins.push_back(2500);
+
+  return bins;
+}
+
+// MHT bins for efficiency parametrisation
+std::vector<double> effMHTBinEdges() {
+  std::vector<double> bins;
+  bins.push_back(200);
+  bins.push_back(250);
+  bins.push_back(300);
+  bins.push_back(350);
+  bins.push_back(450);
+  bins.push_back(600);
+  bins.push_back(2500);
+
+  return bins;
+}
+
+// NJets bins for efficiency parametrisation
+std::vector<double> effNJetsBinEdges() {
+  std::vector<double> bins;
+  bins.push_back(2.5);
+  bins.push_back(3.5);
+  bins.push_back(5.5);
+  bins.push_back(7.5);
+  bins.push_back(13.5);
+  
+  return bins;
+}
+
+// Find bin. Fills 'bin' with index [0, h::GetNbinsX()-1] of bin that
+// contains 'val'. Returns false if 'val' smaller binning, true otherwise.
+bool findBin(TH1* h, const double val, unsigned int& bin) {
+  const bool insideBinning = val >= h->GetXaxis()->GetBinLowEdge(1);
+  if( insideBinning ) {
+    bin = h->FindBin(val)-1;
+    if( static_cast<int>(bin) == h->GetNbinsX() ) bin--; // in case of val larger than binning
+  }
+
+  return insideBinning;
+}
+
+
+
+
 // === Main Function ===================================================
 void lostLepton1(unsigned int id = 11, int nEvts = -1) {
 
@@ -54,8 +136,8 @@ void lostLepton1(unsigned int id = 11, int nEvts = -1) {
 
   // For muon-acceptance determination. The acceptance is determined
   // in bins of MHT and N(jets)
-  std::vector<double> accMhtBins = LeptonAcceptance::mhtBinEdges();
-  std::vector<double> accNJetsBins = LeptonAcceptance::nJetsBinEdges();
+  std::vector<double> accMhtBins   = accMHTBinEdges();
+  std::vector<double> accNJetsBins = accNJetsBinEdges();
   TH2* hNJetsVsMhtAll = new TH2D("hNJetsVsMhtAll",";#slash{H}_{T} [GeV];N(jets)",
 				 accMhtBins.size()-1,&(accMhtBins.front()),
 				 accNJetsBins.size()-1,&(accNJetsBins.front()));
@@ -65,13 +147,17 @@ void lostLepton1(unsigned int id = 11, int nEvts = -1) {
 
   // For muon reconstruction and isolation efficiencies. The efficiencies are
   // determined in bins of HT, MHT, and N(jets)
+  std::vector<double> effNJetsBins = effNJetsBinEdges();
+  TH1* hEffNJetsBinning = new TH1D(LeptonEfficiency::nameEffNJetsBinning(),
+				   "Define the NJets binning;N(Jets)",
+				   effNJetsBins.size()-1,&(effNJetsBins.front()));
+  std::vector<double> effHTBins  = effHTBinEdges(); 
+  std::vector<double> effMHTBins = effMHTBinEdges(); 
   std::vector<TH2*> hRecoAll;
   std::vector<TH2*> hRecoPass;
   std::vector<TH2*> hIsoAll;
   std::vector<TH2*> hIsoPass;
-  for(unsigned int i = 0; i < LeptonEfficiency::numNJetBins(); ++i) {
-    std::vector<double> effHTBins = LeptonEfficiency::htBinEdges(i); 
-    std::vector<double> effMHTBins = LeptonEfficiency::mhtBinEdges(i); 
+  for(unsigned int i = 0; i < effNJetsBins.size()-1; ++i) {
     
     hRecoAll.push_back( new TH2D( "hReco"+LeptonEfficiency::nJetBinId(i)+"All",";H_{T} [GeV];#slash{H}_{T} [GeV]",
 				  effHTBins.size()-1,&(effHTBins.front()),
@@ -133,7 +219,11 @@ void lostLepton1(unsigned int id = 11, int nEvts = -1) {
       // Reconstruction-efficiency determination 1: Counter for all events 
       // with generator-level muons inside acceptance, regardless of whether
       // the muon has also been reconstructed or not.
-      const unsigned int nJetIdx = LeptonEfficiency::nJetBin(evt->nJets());
+      unsigned int nJetIdx = 0;
+      if( !findBin(hEffNJetsBinning,evt->nJets(),nJetIdx) ) {
+	std::cerr << "ERROR: jet multiplicity nJets = " << evt->nJets() << " out of lepton-efficiency binning" << std::endl;
+	throw std::exception();
+      }
       hRecoAll.at(nJetIdx)->Fill(evt->ht(),evt->mht());
       
       // Check if the muon has been reconstructed: check if a reconstructed 
@@ -184,7 +274,7 @@ void lostLepton1(unsigned int id = 11, int nEvts = -1) {
   // Compute efficiencies
   std::vector<TH2*> hRecoEff;
   std::vector<TH2*> hIsoEff;
-  for(unsigned int i = 0; i < LeptonEfficiency::numNJetBins(); ++i) {
+  for(unsigned int i = 0; i < hRecoAll.size(); ++i) {
     TH2* h = static_cast<TH2*>(hRecoPass.at(i)->Clone(LeptonEfficiency::nameMuonRecoEff(i)));
     h->Divide(hRecoAll.at(i));
     hRecoEff.push_back(h);
@@ -202,6 +292,7 @@ void lostLepton1(unsigned int id = 11, int nEvts = -1) {
     hRecoEff.at(i)->Write();
     hIsoEff.at(i)->Write();
   }
+  hEffNJetsBinning->Write();
   for(unsigned int i = 0; i < hRecoAll.size(); ++i) {
     hRecoAll.at(i)->Write();
     hRecoPass.at(i)->Write();

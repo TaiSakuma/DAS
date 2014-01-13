@@ -193,10 +193,14 @@ void hadTau2(unsigned int id = 11,
       // Corrections to control sample
       const double corrBRWToTauHad = 0.65;  // Correction for the BR of hadronic tau decays
       const double corrBRTauToMu = 1./1.15; // Correction for the fact that some muons could come from leptonic decays of taus from W decays
-      const double corrMuAcc = 1./muonAcc(evt->mht(),evt->nJets()); // Correction for muon acceptance
-      const double corrMuRecoEff = 1./muonRecoEff(evt->ht(),evt->mht(),evt->nJets()); // Correction for muon reconstruction efficiency
-      const double corrMuIsoEff = 1./muonIsoEff(evt->ht(),evt->mht(),evt->nJets()); // Correction for muon isolation efficiency
-      
+      const double acc = muonAcc(evt->mht(),evt->nJets());
+      const double recoEff = muonRecoEff(evt->ht(),evt->mht(),evt->nJets());
+      const double isoEff = muonIsoEff(evt->ht(),evt->mht(),evt->nJets());
+      if( !( acc > 0. && recoEff > 0. && isoEff > 0. ) ) continue;
+      const double corrMuAcc = 1./acc; // Correction for muon acceptance
+      const double corrMuRecoEff = 1./recoEff; // Correction for muon reconstruction efficiency
+      const double corrMuIsoEff = 1./isoEff; // Correction for muon isolation efficiency
+
       // The overall correction factor
       const double corr = corrBRTauToMu * corrBRWToTauHad * corrMuAcc * corrMuRecoEff * corrMuIsoEff;
 
