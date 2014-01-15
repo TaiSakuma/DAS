@@ -116,29 +116,9 @@ void general1(unsigned int id, int nEvts = -1) {
 
     // Delta phi between the MHT vector and the jet for the leading MHT jets
     std::vector<double> deltaPhis(3,9999.);
-    const float phiMht = std::atan2(selMhtY,selMhtX);
-    // Loop over reco jets: remember, they are ordered in pt!
-    unsigned int nMhtJets = 0;
-    for(int jetIdx = 0; jetIdx < evt->jetsN(); ++jetIdx) {
-      
-      // Select MHT jets
-      if( evt->jetsPt()[jetIdx] > 30 && std::abs(evt->jetsEta()[jetIdx]) < 5.0 ) {
-	
-	// Compute delta phi (per convention in sector between -Pi and Pi)
-	// between this jet and the MHT vector
-	const float deltaPhi = TVector2::Phi_mpi_pi(evt->jetsPhi()[jetIdx]-phiMht); 
-	// Store deltaPhi
-	deltaPhis.at(nMhtJets) = deltaPhi;
-	
-	// Increase counter for MHT jets
-	++nMhtJets;
-	// DeltaPhi cut only for first three jets
-	// Leave jet loop if the first 3 MHT jets tested
-	if( nMhtJets == 3 ) break;
-	
-      }	// End of MHT-jet criterion
 
-    } // End of loop over reco jets
+    //>>> PLACE DELTA PHI COMPUTATION HERE
+
 
     // Fill histograms
     hNJets->Fill(selNJet);
