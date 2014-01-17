@@ -43,7 +43,10 @@ public:
 
   // Return the efficiency
   double operator()(double ht, double mht, unsigned int nJets) const;
-  
+
+  // Return the number of NJets bins
+  unsigned int numNJetBins() const { return hNJetsBinning_->GetNbinsX(); }
+
 
 private:
   std::vector<TH2*> effs_;
