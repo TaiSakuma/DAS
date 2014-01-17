@@ -11,6 +11,9 @@ void plotMuonEfficiencies(const TString &fileName = "../data/LostLepton_MuonEffi
   gROOT->ProcessLine(".L ../Utils/LeptonAcceptance.h++");
   StyleMatters::init();
 
+  LeptonEfficiency muonRecoEff(fileName,LeptonEfficiency::nameMuonRecoEff());
+
+
   TH2* hAcc = static_cast<TH2*>(HistReader::get(fileName,LeptonAcceptance::nameMuonAcc()));
   hAcc->SetTitle("#mu acceptance");
   TCanvas* canAcc = new TCanvas("canAcc","Acc 2D",500,500);
@@ -18,14 +21,13 @@ void plotMuonEfficiencies(const TString &fileName = "../data/LostLepton_MuonEffi
   StyleMatters::adaptForColZ(canAcc);
   hAcc->Draw("colz");
 
-  for(unsigned int i = 0; i < LeptonEfficiency::numNJetBins(); ++i) {
+  for(unsigned int i = 0; i < muonRecoEff.numNJetBins(); ++i) {
     TH2* hRecoEff = static_cast<TH2*>(HistReader::get(fileName,LeptonEfficiency::nameMuonRecoEff(i)));
     hRecoEff->SetTitle("#mu reco eff, "+LeptonEfficiency::nJetBinId(i));
     TCanvas* canRecoEff = new TCanvas("canRecoEff"+LeptonEfficiency::nJetBinId(i),"Reco Eff "+LeptonEfficiency::nJetBinId(i),500,500);
     canRecoEff->cd();
     StyleMatters::adaptForColZ(canRecoEff);
     hRecoEff->Draw("colz");
-    
     TH2* hIsoEff = static_cast<TH2*>(HistReader::get(fileName,LeptonEfficiency::nameMuonIsoEff(i)));
     hIsoEff->SetTitle("#mu iso eff, "+LeptonEfficiency::nJetBinId(i));
     TCanvas* canIsoEff = new TCanvas("canIsoEff"+LeptonEfficiency::nJetBinId(i),"Iso Eff "+LeptonEfficiency::nJetBinId(i),500,500);
