@@ -103,7 +103,7 @@ void general2(unsigned int id, int nEvts = -1) {
     if( !Selection::deltaPhi(evt->deltaPhi1(),evt->deltaPhi2(),evt->deltaPhi3()) ) continue;
 
     // Apply an event weight
-    const float weight = evt->weight();
+    const float weight = 1.;
     
     // Fill histograms
     hNJets->Fill(evt->nJets(),weight);
