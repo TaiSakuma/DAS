@@ -46,7 +46,7 @@ void plotDataVsMC(const TString &graphicsFormat = "png") {
 
   // Get the bkg distributions
   const int kNBkgSamples = 4;
-  unsigned int ids[kNBkgSamples] = { 14, 12, 13, 11 };
+  unsigned int ids[kNBkgSamples] = { 14, 12, 11, 13 };
   THStack* hBkgNJets = new THStack("hBkgNJets",";N(jets);Events");
   THStack* hBkgHt = new THStack("hBkgHt",";H_{T} [GeV];Events");
   THStack* hBkgMht = new THStack("hBkgMht",";#slash{H}_{T} [GeV];Events");
