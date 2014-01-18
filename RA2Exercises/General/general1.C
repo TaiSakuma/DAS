@@ -67,7 +67,7 @@ void general1(unsigned int id, int nEvts = -1) {
     title = ";#Delta#phi(#slash{#vec{H}}_{T},jet ";
     title += i+1;
     title += ");N(events)";
-    hDeltaPhi.at(i) = new TH1D(name,title,24,-4,4);
+    hDeltaPhi.at(i) = new TH1D(name,title,24,0.,3.2);
     hDeltaPhi.at(i)->Sumw2();
   }
 
@@ -128,7 +128,7 @@ void general1(unsigned int id, int nEvts = -1) {
 	// between this jet and the MHT vector
 	const float deltaPhi = TVector2::Phi_mpi_pi(evt->jetsPhi()[jetIdx]-phiMht); 
 	// Store deltaPhi
-	deltaPhis.at(nMhtJets) = deltaPhi;
+	deltaPhis.at(nMhtJets) = std::abs( deltaPhi );
 	
 	// Increase counter for MHT jets
 	++nMhtJets;
