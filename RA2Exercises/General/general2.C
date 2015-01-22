@@ -66,7 +66,7 @@ void general2(unsigned int id, int nEvts = -1) {
     title = ";#Delta#phi(#slash{#vec{H}}_{T},jet ";
     title += i+1;
     title += ");N(events)";
-    hDeltaPhi.at(i) = new TH1D(name,title,24,0.,3.2);
+    hDeltaPhi.at(i) = new TH1D(name,title,24,0,3.2);
     hDeltaPhi.at(i)->Sumw2();
   }
 
@@ -103,7 +103,7 @@ void general2(unsigned int id, int nEvts = -1) {
     if( !Selection::deltaPhi(evt->deltaPhi1(),evt->deltaPhi2(),evt->deltaPhi3()) ) continue;
 
     // Apply an event weight
-    const float weight = 1.;
+    const float weight = evt->weight();
     
     // Fill histograms
     hNJets->Fill(evt->nJets(),weight);
